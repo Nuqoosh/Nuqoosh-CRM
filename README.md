@@ -1,53 +1,77 @@
 # Nuqoosh CRM API
 
-A production-ready multi-company CRM backend API developed in Laravel.
+A production-ready **Multi-Company CRM Backend API** built with Laravel, designed for secure business management, client handling, document templates, and dynamic PDF generation.
+
+---
 
 ## 🚀 Project Overview
 
-Nuqoosh CRM API is designed to manage multiple companies, clients, templates, and document generation through secure REST APIs.
+Nuqoosh CRM API is a scalable backend solution that allows businesses to manage multiple companies within a single system. It provides secure REST APIs for authentication, company switching, client records, reusable templates, and downloadable PDF documents.
 
-This backend system is ready for frontend integration (React, Vue, Mobile App).
+This backend is ready for integration with:
+
+* React.js Frontend
+* Vue.js Frontend
+* Mobile Applications
+* Admin Dashboards
+* SaaS CRM Platforms
 
 ---
 
 ## ✅ Core Features
 
 ### 🔐 Authentication
-- Secure Login API
-- Laravel Sanctum Token Authentication
+
+* Secure User Login
+* Laravel Sanctum Token Authentication
+* Protected API Routes
 
 ### 👤 Roles & Permissions
-- Admin Role
-- Permission Based Route Protection
 
-### 🏢 Multi Company System
-- Create Multiple Companies
-- Switch Active Company
-- Company-wise Data Isolation
+* Admin Role Management
+* Permission-Based Access Control
+* Secure Middleware Protection
+
+### 🏢 Multi-Company Management
+
+* Create Multiple Companies
+* Switch Active Company
+* Company-Level Data Isolation
 
 ### 👥 Client Management
-- Create Clients
-- View Company Clients
-- Delete Clients
+
+* Create Clients
+* View Company Clients
+* Delete Clients
 
 ### 📄 Document Templates
-- Create Templates
-- Dynamic Placeholder Support
 
-### 📑 PDF Document Generation
-- Generate Quotation / Invoice / Custom Docs
-- PDF Download
+* Create Reusable Templates
+* Dynamic Placeholder Support
+
+Supported placeholders:
+
+* `{{client_name}}`
+* `{{company_name}}`
+* `{{price}}`
+
+### 📑 Dynamic PDF Generation
+
+* Generate Quotations
+* Generate Invoices
+* Generate Custom Business Documents
+* Instant PDF Download
 
 ---
 
-## 🛠 Tech Stack
+## 🛠 Technology Stack
 
-- Laravel
-- PHP
-- MySQL
-- Laravel Sanctum
-- Spatie Permission
-- DomPDF
+* Laravel
+* PHP
+* MySQL
+* Laravel Sanctum
+* Spatie Roles & Permissions
+* DomPDF
 
 ---
 
@@ -55,42 +79,82 @@ This backend system is ready for frontend integration (React, Vue, Mobile App).
 
 ```text
 http://127.0.0.1:8000/api
+```
 
+---
 
-## 🔗 Main Endpoints
+## 🔗 Main API Endpoints
 
-### 🔐 Auth
-- POST /login
+### 🔐 Authentication
+
+* `POST /login`
 
 ### 🏢 Companies
-- POST /companies
-- POST /companies/select
-- GET /companies
+
+* `POST /companies`
+* `POST /companies/select`
+* `GET /companies`
 
 ### 👥 Clients
-- POST /clients
-- GET /clients
-- DELETE /clients/{id}
+
+* `POST /clients`
+* `GET /clients`
+* `DELETE /clients/{id}`
 
 ### 📄 Templates
-- POST /document-templates
-- GET /document-templates
+
+* `POST /document-templates`
+* `GET /document-templates`
 
 ### 📑 Documents
-- POST /document-templates/{id}/generate
+
+* `POST /document-templates/{id}/generate`
 
 ---
 
 ## 🔒 Security Features
 
-- Token Authentication
-- Role Based Access
-- Permission Middleware
-- Company Access Middleware
+* Token Authentication
+* Role-Based Authorization
+* Permission Middleware
+* Company Access Middleware
+* Protected API Routes
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing Status
 
-All APIs tested successfully using Apidog.
-:::
+All APIs have been tested successfully using **Apidog**.
+
+Tested Modules:
+
+* Login Authentication
+* Company Creation
+* Company Switching
+* Client Management
+* Template Management
+* Dynamic Preview Generation
+* PDF Download Generation
+
+---
+
+## 📈 Future Enhancements
+
+* Dashboard Analytics
+* Search & Filters
+* Pagination
+* Team User Accounts
+* Subscription Billing
+* Email PDF Delivery
+
+---
+
+## 👨‍💻 Author
+
+**Hafiz Adnan Yousaf**
+
+---
+
+## 📌 Project Status
+
+CRM Backend API is completed, tested, and ready for production-level frontend integration.
