@@ -16,17 +16,19 @@ class AuthController extends Controller
         'password' => 'required'
     ]);
 
-    $user = \App\Models\User::where('email', $request->email)->first();
+    $user = User::where('email', $request->email)->first();
 
-    if (!$user || !\Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Invalid credentials'], 401);
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return response()->json([
+            'message' => 'Invalid credentials'
+        ], 401);
     }
 
-    $token = $user->createToken('api-token')->plainTextToken;
-
     return response()->json([
-        'token' => $token,
-        'user' => $user
+        'token' => $user->createToken('crm-token')->plainTextToken,
+        'user' => $user,
+        'roles' => $user->getRoleNames(),
+        'companies' => $user->companies ?? []
     ]);
 }
 }

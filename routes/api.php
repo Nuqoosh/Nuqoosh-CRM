@@ -1,40 +1,100 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\DocumentTemplateController;
 
-// TEST ROUTE
+/*
+|--------------------------------------------------------------------------
+| TEST ROUTE
+|--------------------------------------------------------------------------
+*/
 Route::get('/test', function () {
-    return response()->json(['message' => 'API Working']);
+    return response()->json([
+        'message' => 'CRM API is working fine 🚀'
+    ]);
 });
 
-// LOGIN (PUBLIC)
+/*
+|--------------------------------------------------------------------------
+| AUTH (PUBLIC)
+|--------------------------------------------------------------------------
+*/
 Route::post('/login', [AuthController::class, 'login']);
 
-// AUTH ROUTES
-Route::middleware('auth:sanctum')->group(function () {
+/*
+|--------------------------------------------------------------------------
+| COMPANY SETUP ROUTES (NO company.access HERE)
+|--------------------------------------------------------------------------
+*/
 
-    // Companies
-    Route::get('/companies', [CompanyController::class, 'index']);
-    Route::post('/companies', [CompanyController::class, 'store']);
-    Route::post('/companies/select', [CompanyController::class, 'select']);
+// CREATE COMPANY (ADMIN ONLY)
+Route::post('/companies', [CompanyController::class, 'store'])
+    ->middleware(['auth:sanctum', 'role:admin']);
 
-    // Clients
-    Route::get('/clients', [ClientController::class, 'index']);
-    Route::post('/clients', [ClientController::class, 'store']);
+// SELECT ACTIVE COMPANY
+Route::post('/companies/select', [CompanyController::class, 'select'])
+    ->middleware('auth:sanctum');
 
-    // Documents
-    Route::get('/documents', [DocumentController::class, 'index']);
-    Route::post('/documents/generate', [DocumentController::class, 'generate']);
 
-    // Document Templates
-    Route::get('/document-templates', [DocumentTemplateController::class, 'index']);
-    Route::post('/document-templates', [DocumentTemplateController::class, 'store']);
+/*
+|--------------------------------------------------------------------------
+| PROTECTED CRM ROUTES (ONLY AFTER COMPANY SELECT)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth:sanctum', 'company.access'])->group(function () {
 
-    // 🔥 PRO GENERATE (SECURE + POST)
-    Route::post('/document-templates/{id}/generate', [DocumentTemplateController::class, 'generate']);
+    /*
+    |--------------------------------------------------------------------------
+    | COMPANIES (VIEW ONLY)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/companies', [CompanyController::class, 'index'])
+        ->middleware('permission:view');
+
+    /*
+    |--------------------------------------------------------------------------
+    | CLIENTS
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/clients', [ClientController::class, 'index'])
+        ->middleware('permission:view');
+
+    Route::post('/clients', [ClientController::class, 'store'])
+        ->middleware('permission:create');
+
+    Route::delete('/clients/{id}', [ClientController::class, 'destroy'])
+        ->middleware('permission:delete');
+
+    /*
+    |--------------------------------------------------------------------------
+    | DOCUMENTS
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/documents', [DocumentController::class, 'index'])
+        ->middleware('permission:view');
+
+    Route::post('/documents/generate', [DocumentController::class, 'generate'])
+        ->middleware('permission:create');
+
+    Route::get('/documents/download/{id}', [DocumentController::class, 'download'])
+        ->middleware('permission:view');
+
+    /*
+    |--------------------------------------------------------------------------
+    | DOCUMENT TEMPLATES
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/document-templates', [DocumentTemplateController::class, 'index'])
+        ->middleware('permission:view');
+
+    Route::post('/document-templates', [DocumentTemplateController::class, 'store'])
+        ->middleware('role:admin');
+
+    Route::post('/document-templates/{id}/generate', [DocumentTemplateController::class, 'generate'])
+        ->middleware('permission:create');
+
 });

@@ -12,23 +12,41 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class DocumentTemplateController extends Controller
 {
-    // GET /api/document-templates
-    public function index()
+    /*
+    |--------------------------------------------------------------------------
+    | GET Templates (Only Active Company)
+    |--------------------------------------------------------------------------
+    */
+    public function index(Request $request)
     {
-        return response()->json(DocumentTemplate::all());
+        $companyId = $request->user()->active_company_id;
+
+        return response()->json(
+            DocumentTemplate::where('company_id', $companyId)->get()
+        );
     }
 
-    // POST /api/document-templates
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE Template
+    |--------------------------------------------------------------------------
+    */
     public function store(Request $request)
     {
         $request->validate([
-            'company_id' => 'required|exists:companies,id',
-            'name' => 'required|string',
-            'type' => 'required|string',
+            'name'    => 'required|string|max:255',
+            'type'    => 'required|string|max:100',
             'content' => 'required|string',
         ]);
 
-        $template = DocumentTemplate::create($request->all());
+        $companyId = $request->user()->active_company_id;
+
+        $template = DocumentTemplate::create([
+            'company_id' => $companyId,
+            'name'       => $request->name,
+            'type'       => $request->type,
+            'content'    => $request->content,
+        ]);
 
         return response()->json([
             'message' => 'Template created successfully',
@@ -36,50 +54,51 @@ class DocumentTemplateController extends Controller
         ]);
     }
 
-    // 🔥 FINAL GENERATE (PDF + JSON OPTION)
+    /*
+    |--------------------------------------------------------------------------
+    | GENERATE DOCUMENT
+    |--------------------------------------------------------------------------
+    */
     public function generate(Request $request, $id, TemplateService $service)
     {
-        // ✅ Validation
         $request->validate([
             'client_id' => 'required|exists:clients,id'
         ]);
 
-        // ✅ Fetch data
-        $template = DocumentTemplate::findOrFail($id);
-        $client = Client::findOrFail($request->client_id);
-        $company = Company::findOrFail($template->company_id);
+        $companyId = $request->user()->active_company_id;
 
-        // ✅ Dynamic mapping
+        $template = DocumentTemplate::where('id', $id)
+            ->where('company_id', $companyId)
+            ->firstOrFail();
+
+        $client = Client::where('id', $request->client_id)
+            ->where('company_id', $companyId)
+            ->firstOrFail();
+
+        $company = Company::findOrFail($companyId);
+
         $data = [
-            '{{client_name}}' => $client->name,
+            '{{client_name}}'  => $client->name,
             '{{company_name}}' => $company->name,
-            '{{price}}' => $request->input('price', 0),
+            '{{price}}'        => $request->input('price', 0),
         ];
 
-        // ✅ Render content
         $output = $service->render($template->content, $data);
 
-        // 👉 Agar sirf preview chahiye (optional)
         if ($request->input('preview') == true) {
             return response()->json([
                 'generated' => $output
             ]);
         }
 
-        // ✅ HTML for PDF (styled)
         $html = "
             <h2 style='text-align:center;'>{$template->name}</h2>
             <hr>
             <p style='font-size:14px; line-height:1.6;'>{$output}</p>
         ";
 
-        // ✅ Generate PDF
         $pdf = Pdf::loadHTML($html);
 
-        // 👉 Download
         return $pdf->download('document.pdf');
-
-        // 👉 Agar browser preview chahiye:
-        // return $pdf->stream('document.pdf');
     }
 }

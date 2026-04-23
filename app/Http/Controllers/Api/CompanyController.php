@@ -8,47 +8,86 @@ use App\Models\Company;
 
 class CompanyController extends Controller
 {
-    // GET companies of logged-in user
+    /*
+    |--------------------------------------------------------------------------
+    | GET Companies of Logged-in User
+    |--------------------------------------------------------------------------
+    */
     public function index(Request $request)
-  {
-    return response()->json([
-        'companies' => $request->user()->companies
-    ]);
-  }
+    {
+        return response()->json([
+            'companies' => $request->user()->companies
+        ]);
+    }
 
-    // CREATE company + attach to user
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE Company + Attach User
+    |--------------------------------------------------------------------------
+    */
     public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required'
-    ]);
+    {
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string'
+        ]);
 
-    $company = Company::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'phone' => $request->phone,
-    ]);
+        $user = $request->user();
 
-    // AUTO ATTACH USER
-    $request->user()->companies()->attach($company->id);
+        // Create Company
+        $company = Company::create([
+            'name'  => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+        ]);
 
-    return response()->json([
-        'message' => 'Company created & attached',
-        'company' => $company
-    ]);
-}
+        // Attach user with company (FIXED)
+        $user->companies()->attach($company->id);
 
-public function select(Request $request)
-{
-    $request->validate([
-        'company_id' => 'required'
-    ]);
+        // Optional: first company auto select
+        if (!$user->active_company_id) {
+            $user->active_company_id = $company->id;
+            $user->save();
+        }
 
-    session(['active_company' => $request->company_id]);
+        return response()->json([
+            'message' => 'Company created & attached successfully',
+            'company' => $company,
+            'active_company_id' => $user->active_company_id
+        ]);
+    }
 
-    return response()->json([
-        'message' => 'Company selected successfully'
-    ]);
-}
+    /*
+    |--------------------------------------------------------------------------
+    | SELECT Active Company
+    |--------------------------------------------------------------------------
+    */
+    public function select(Request $request)
+    {
+        $request->validate([
+            'company_id' => 'required|integer'
+        ]);
 
+        $user = $request->user();
+
+        // Security check: user belongs to this company
+        $belongs = $user->companies()
+            ->where('companies.id', $request->company_id)
+            ->exists();
+
+        if (!$belongs) {
+            return response()->json([
+                'message' => 'Unauthorized company access'
+            ], 403);
+        }
+
+        $user->active_company_id = $request->company_id;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Company selected successfully',
+            'active_company_id' => $user->active_company_id
+        ]);
+    }
 }
