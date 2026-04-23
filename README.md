@@ -57,40 +57,40 @@ This backend system is ready for frontend integration (React, Vue, Mobile App).
 http://127.0.0.1:8000/api
 
 
-🔗 Main Endpoints
-Auth
-POST /login
-Companies
-POST /companies
-POST /companies/select
-GET /companies
-Clients
-POST /clients
-GET /clients
-DELETE /clients/{id}
-Templates
-POST /document-templates
-GET /document-templates
-Documents
-POST /document-templates/{id}/generate
-🔒 Security Features
-Token Authentication
-Role Based Access
-Permission Middleware
-Company Access Middleware
-🧪 Testing
+## 🔗 Main Endpoints
+
+### 🔐 Auth
+- POST /login
+
+### 🏢 Companies
+- POST /companies
+- POST /companies/select
+- GET /companies
+
+### 👥 Clients
+- POST /clients
+- GET /clients
+- DELETE /clients/{id}
+
+### 📄 Templates
+- POST /document-templates
+- GET /document-templates
+
+### 📑 Documents
+- POST /document-templates/{id}/generate
+
+---
+
+## 🔒 Security Features
+
+- Token Authentication
+- Role Based Access
+- Permission Middleware
+- Company Access Middleware
+
+---
+
+## 🧪 Testing
 
 All APIs tested successfully using Apidog.
-
-📈 Ready For
-React Frontend
-Vue Frontend
-Mobile Application
-SaaS CRM Expansion
-👨‍💻 Author
-
-Hafiz Adnan Yousaf
-
-📌 Status
-
-Completed and production-ready backend API.
+:::
