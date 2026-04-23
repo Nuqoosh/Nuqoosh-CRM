@@ -149,9 +149,9 @@ Tested Modules:
 
 ---
 
-## 👨‍💻 Author
+## 👨‍💻 Developer
 
-**Hafiz Adnan Yousaf**
+**Adnan@nuqoosh.io**
 
 ---
 
