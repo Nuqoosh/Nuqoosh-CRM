@@ -77,7 +77,8 @@ class DocumentController extends Controller
 
         $fileName = 'document_' . time() . '.pdf';
 
-        Storage::put('public/' . $fileName, $pdf->output());
+        //  FIXED LINE
+        Storage::disk('public')->put($fileName, $pdf->output());
 
         // UPDATE DOCUMENT
         $document->update([
@@ -93,7 +94,7 @@ class DocumentController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | DOCUMENT LIST (NEW)
+    | DOCUMENT LIST
     |--------------------------------------------------------------------------
     */
     public function index(Request $request)
@@ -114,7 +115,7 @@ class DocumentController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | DOWNLOAD DOCUMENT (NEW)
+    | DOWNLOAD DOCUMENT
     |--------------------------------------------------------------------------
     */
     public function download($id, Request $request)
