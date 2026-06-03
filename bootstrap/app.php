@@ -13,17 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
-
-        //  ALL MIDDLEWARE IN ONE PLACE
         $middleware->alias([
-            // Spatie Roles & Permissions
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-
-            // Custom Company Middleware
             'company.access' => \App\Http\Middleware\CheckCompanyAccess::class,
         ]);
 

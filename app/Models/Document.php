@@ -11,6 +11,7 @@ class Document extends Model
         'client_id',
         'document_template_id',
         'content',
-        'pdf_path'
+        'pdf_path',
+        'contract_number'
     ];
 }

@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class DocumentTemplate extends Model
 {
     protected $fillable = [
-        'company_id',
-        'name',
-        'type',
-        'content'
-    ];
+    'company_id',
+    'name',
+    'type',
+    'category',
+    'sub_category',
+    'content'
+];
 }

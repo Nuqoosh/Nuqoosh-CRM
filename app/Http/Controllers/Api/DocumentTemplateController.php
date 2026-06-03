@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\Company;
 use App\Services\TemplateService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class DocumentTemplateController extends Controller
 {
@@ -18,13 +19,32 @@ class DocumentTemplateController extends Controller
     |--------------------------------------------------------------------------
     */
     public function index(Request $request)
-    {
-        $companyId = $request->user()->active_company_id;
+{
+    $companyId = $request->user()->active_company_id;
 
-        return response()->json(
-            DocumentTemplate::where('company_id', $companyId)->get()
+    $query = DocumentTemplate::where(
+        'company_id',
+        $companyId
+    );
+
+    if ($request->filled('category')) {
+        $query->where(
+            'category',
+            $request->category
         );
     }
+
+    if ($request->filled('sub_category')) {
+        $query->where(
+            'sub_category',
+            $request->sub_category
+        );
+    }
+
+    return response()->json(
+        $query->get()
+    );
+}
 
     /*
     |--------------------------------------------------------------------------
@@ -34,19 +54,23 @@ class DocumentTemplateController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'    => 'required|string|max:255',
-            'type'    => 'required|string|max:100',
-            'content' => 'required|string',
-        ]);
+    'name'         => 'required|string|max:255',
+    'type'         => 'required|string|max:100',
+    'content'      => 'required|string',
+    'category'     => 'nullable|string|max:100',
+    'sub_category' => 'nullable|string|max:100',
+]);
 
         $companyId = $request->user()->active_company_id;
 
-        $template = DocumentTemplate::create([
-            'company_id' => $companyId,
-            'name'       => $request->name,
-            'type'       => $request->type,
-            'content'    => $request->content,
-        ]);
+     $template = DocumentTemplate::create([
+    'company_id'   => $companyId,
+    'name'         => $request->name,
+    'type'         => $request->type,
+    'category'     => $request->category,
+    'sub_category' => $request->sub_category,
+    'content'      => $request->content,
+]);
 
         return response()->json([
             'message' => 'Template created successfully',
@@ -54,6 +78,17 @@ class DocumentTemplateController extends Controller
         ]);
     }
 
+      public function categories(Request $request)
+{
+    $companyId = $request->user()->active_company_id;
+
+    return response()->json(
+        DocumentTemplate::where('company_id', $companyId)
+            ->select('category')
+            ->distinct()
+            ->pluck('category')
+    );
+}
     /*
     |--------------------------------------------------------------------------
     | GENERATE DOCUMENT

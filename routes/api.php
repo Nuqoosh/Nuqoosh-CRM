@@ -88,6 +88,8 @@ Route::middleware(['auth:sanctum', 'company.access'])->group(function () {
     | DOCUMENT TEMPLATES
     |--------------------------------------------------------------------------
     */
+    Route::get('/document-template-categories', [DocumentTemplateController::class, 'categories'])
+    ->middleware('permission:view');
     Route::get('/document-templates', [DocumentTemplateController::class, 'index'])
         ->middleware('permission:view');
 
