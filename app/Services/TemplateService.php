@@ -2,14 +2,26 @@
 
 namespace App\Services;
 
+/**
+ * Class TemplateService
+ * @package App\Services
+ * 
+ * Handles template rendering with placeholders
+ */
 class TemplateService
 {
-    public function render($content, $data = [])
+    /**
+     * Replace placeholders in template content
+     * 
+     * @param string $content
+     * @param array $data
+     * @return string
+     */
+    public function render(string $content, array $data): string
     {
-        return str_replace(
-            array_keys($data),
-            array_values($data),
-            $content
-        );
+        $search = array_keys($data);
+        $replace = array_values($data);
+        
+        return str_replace($search, $replace, $content);
     }
 }

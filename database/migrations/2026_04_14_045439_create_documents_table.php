@@ -6,41 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
-{
-    // Schema::create('documents', function (Blueprint $table) {
-    //     $table->id();
-    //     $table->foreignId('company_id')->constrained()->cascadeOnDelete();
-    //     $table->foreignId('client_id')->constrained()->cascadeOnDelete();
-    //     $table->foreignId('document_template_id')->constrained()->cascadeOnDelete();
+    {
+        Schema::create('documents', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('company_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('client_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('document_template_id')->constrained('document_templates');
+            $table->longText('content');
+            $table->string('contract_number')->nullable();
+            $table->string('pdf_path')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamps();
+        });
+    }
 
-    //     $table->string('type');
-    //     $table->json('data');
-    //     $table->string('file_path')->nullable();
-    //     $table->enum('file_type', ['pdf', 'docx'])->nullable();
-
-    //     $table->timestamps();
-    // });
-    Schema::create('documents', function (Blueprint $table) {
-    $table->id();
-
-    $table->foreignId('company_id')->constrained()->cascadeOnDelete();
-    $table->foreignId('client_id')->constrained()->cascadeOnDelete();
-    $table->foreignId('document_template_id')->constrained('document_templates');
-
-    $table->longText('content');
-    $table->string('pdf_path')->nullable();
-
-    $table->timestamps();
-});
-}
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('documents');

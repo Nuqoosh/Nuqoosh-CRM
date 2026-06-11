@@ -6,23 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            if (!Schema::hasColumn('users', 'active_company_id')) {
+                $table->foreignId('active_company_id')->nullable()->after('password');
+            }
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            if (Schema::hasColumn('users', 'active_company_id')) {
+                $table->dropForeign(['active_company_id']);
+                $table->dropColumn('active_company_id');
+            }
         });
     }
 };

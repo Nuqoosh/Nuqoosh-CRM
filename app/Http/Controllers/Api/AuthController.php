@@ -5,30 +5,115 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use App\Models\User;
+use Illuminate\Validation\ValidationException;
 
+/**
+ * Class AuthController
+ * @package App\Http\Controllers\Api
+ * 
+ * Handles user authentication (login, logout, registration)
+ */
 class AuthController extends Controller
 {
+    /**
+     * Authenticate user and generate API token
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * 
+     * @throws ValidationException
+     */
     public function login(Request $request)
-{
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required'
-    ]);
+    {
+        // Validate incoming request
+        $request->validate([
+            'email'    => 'required|email|max:255',
+            'password' => 'required|string|min:6'
+        ]);
 
-    $user = User::where('email', $request->email)->first();
+        // Rate limiting (prevent brute force)
+        $key = 'login-attempts:' . $request->ip();
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            return response()->json([
+                'message' => 'Too many login attempts. Please try again in ' . 
+                            RateLimiter::availableIn($key) . ' seconds.'
+            ], 429);
+        }
 
-    if (!$user || !Hash::check($request->password, $user->password)) {
+        // Find user by email
+        $user = User::where('email', $request->email)->first();
+
+        // Verify credentials
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            RateLimiter::hit($key);
+            return response()->json([
+                'message' => 'Invalid credentials. Please check your email and password.'
+            ], 401);
+        }
+
+        // Reset rate limiter on successful login
+        RateLimiter::clear($key);
+
+        // Revoke existing tokens (optional: single device only)
+        // $user->tokens()->delete();
+
+        // Create new token
+        $token = $user->createToken('crm-token')->plainTextToken;
+
+        // Load user relationships
+        $user->load('companies');
+
         return response()->json([
-            'message' => 'Invalid credentials'
-        ], 401);
+            'status'    => 'success',
+            'message'   => 'Login successful',
+            'token'     => $token,
+            'token_type' => 'Bearer',
+            'user'      => [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email,
+                'active_company_id' => $user->active_company_id
+            ],
+            'roles'     => $user->getRoleNames(),
+            'companies' => $user->companies ?? []
+        ]);
     }
 
-    return response()->json([
-        'token' => $user->createToken('crm-token')->plainTextToken,
-        'user' => $user,
-        'roles' => $user->getRoleNames(),
-        'companies' => $user->companies ?? []
-    ]);
-}
+    /**
+     * Logout user and revoke token
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function logout(Request $request)
+    {
+        // Revoke current access token
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Logged out successfully'
+        ]);
+    }
+
+    /**
+     * Get authenticated user details
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function me(Request $request)
+    {
+        $user = $request->user();
+        $user->load('companies');
+
+        return response()->json([
+            'user'      => $user,
+            'roles'     => $user->getRoleNames(),
+            'companies' => $user->companies,
+            'permissions' => $user->getAllPermissions()->pluck('name')
+        ]);
+    }
 }

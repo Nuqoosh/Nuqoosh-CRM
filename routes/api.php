@@ -52,51 +52,46 @@ Route::middleware(['auth:sanctum', 'company.access'])->group(function () {
     | COMPANIES (VIEW ONLY)
     |--------------------------------------------------------------------------
     */
-    Route::get('/companies', [CompanyController::class, 'index'])
-        ->middleware('permission:view');
+    Route::get('/companies', [CompanyController::class, 'index']);
 
     /*
     |--------------------------------------------------------------------------
     | CLIENTS
     |--------------------------------------------------------------------------
     */
-    Route::get('/clients', [ClientController::class, 'index'])
-        ->middleware('permission:view');
+    Route::get('/clients', [ClientController::class, 'index']);
 
-    Route::post('/clients', [ClientController::class, 'store'])
-        ->middleware('permission:create');
+    Route::post('/clients', [ClientController::class, 'store']);
 
-    Route::delete('/clients/{id}', [ClientController::class, 'destroy'])
-        ->middleware('permission:delete');
+    Route::delete('/clients/{id}', [ClientController::class, 'destroy']);
 
     /*
     |--------------------------------------------------------------------------
     | DOCUMENTS
     |--------------------------------------------------------------------------
     */
-    Route::get('/documents', [DocumentController::class, 'index'])
-        ->middleware('permission:view');
+    Route::get('/documents', [DocumentController::class, 'index']);
 
-    Route::post('/documents/generate', [DocumentController::class, 'generate'])
-        ->middleware('permission:create');
+    Route::post('/documents/generate', [DocumentController::class, 'generate']);
 
-    Route::get('/documents/download/{id}', [DocumentController::class, 'download'])
-        ->middleware('permission:view');
+    Route::get('/documents/download/{id}', [DocumentController::class, 'download']);
 
     /*
     |--------------------------------------------------------------------------
     | DOCUMENT TEMPLATES
     |--------------------------------------------------------------------------
     */
-    Route::get('/document-template-categories', [DocumentTemplateController::class, 'categories'])
-    ->middleware('permission:view');
-    Route::get('/document-templates', [DocumentTemplateController::class, 'index'])
-        ->middleware('permission:view');
+    Route::get('/document-template-categories', [DocumentTemplateController::class, 'categories']);
+
+    Route::get('/document-templates', [DocumentTemplateController::class, 'index']);
 
     Route::post('/document-templates', [DocumentTemplateController::class, 'store'])
-        ->middleware('role:admin');
+        ->middleware('role:admin');  // sirf yahan role check hai
 
-    Route::post('/document-templates/{id}/generate', [DocumentTemplateController::class, 'generate'])
-        ->middleware('permission:create');
+    Route::post('/document-templates/{id}/generate', [DocumentTemplateController::class, 'generate']);
+     
+    // routes/api.php mein add karo:
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 
-});
+    });
