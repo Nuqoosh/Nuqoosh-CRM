@@ -1,8 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html dir="{{ $language === 'ar' ? 'rtl' : 'ltr' }}" lang="{{ $language }}">
 <head>
 <meta charset="utf-8">
 <style>
+
+@font-face {
+    font-family: 'Cairo';
+    src: url('{{ public_path("fonts/Cairo-Regular.ttf") }}');
+    font-weight: normal;
+}
 
 @page {
     size: A4;
@@ -14,13 +20,15 @@
 }
 
 body {
-    font-family: DejaVu Sans, sans-serif;
+    font-family: {{ $language === 'ar' ? "'Cairo'" : 'DejaVu Sans' }}, sans-serif;
     font-size: 12px;
     line-height: 1.8;
     color: #2d2d2d;
+    direction: {{ $language === 'ar' ? 'rtl' : 'ltr' }};
+    text-align: {{ $language === 'ar' ? 'right' : 'left' }};
 }
 
-/* ─── HEADER (fixed, repeats on every page) ─── */
+/* HEADER */
 .header {
     position: fixed;
     top: -125px;
@@ -56,7 +64,7 @@ body {
 }
 
 .company-block {
-    text-align: right;
+    text-align: {{ $language === 'ar' ? 'left' : 'right' }};
 }
 
 .company-name {
@@ -73,7 +81,7 @@ body {
     line-height: 1.6;
 }
 
-/* ─── FOOTER (fixed, repeats on every page) ─── */
+/* FOOTER */
 .footer {
     position: fixed;
     bottom: -80px;
@@ -93,10 +101,10 @@ body {
 }
 
 .footer-right {
-    text-align: right;
+    text-align: {{ $language === 'ar' ? 'left' : 'right' }};
 }
 
-/* ─── DOCUMENT TITLE ─── */
+/* DOCUMENT TITLE */
 .document-title {
     text-align: center;
     margin-bottom: 28px;
@@ -117,7 +125,7 @@ body {
     color: #888;
 }
 
-/* ─── CONTRACT INFO TABLE ─── */
+/* CONTRACT INFO TABLE */
 .contract-box {
     width: 100%;
     border-collapse: collapse;
@@ -150,7 +158,7 @@ body {
     color: #333;
 }
 
-/* ─── SECTION HEADING ─── */
+/* SECTION HEADING */
 .section-title {
     background: #0b1f3a;
     color: #fff;
@@ -163,7 +171,7 @@ body {
     text-transform: uppercase;
 }
 
-/* ─── DYNAMIC CONTENT AREA ─── */
+/* DYNAMIC CONTENT */
 .content-area {
     margin-top: 10px;
     line-height: 1.9;
@@ -199,7 +207,7 @@ body {
     margin-bottom: 4px;
 }
 
-/* ─── SIGNATURE BLOCK ─── */
+/* SIGNATURE BLOCK */
 .signature-section {
     margin-top: 60px;
     page-break-inside: avoid;
@@ -262,7 +270,7 @@ body {
     margin-top: 6px;
 }
 
-/* ─── PAGE NUMBER ─── */
+/* PAGE NUMBER */
 .page-number:before {
     content: "Page " counter(page) " of " counter(pages);
 }
@@ -272,101 +280,132 @@ body {
 
 <body>
 
-{{-- ═══ FIXED HEADER ═══ --}}
+{{-- FIXED HEADER --}}
 <div class="header">
     <div class="header-inner">
 
-        {{-- Logo with fallback --}}
-        @if(isset($logo) && $logo && file_exists($logo))
-            <img src="{{ $logo }}" class="logo" alt="{{ $company->name }}">
-        @else
-            <div class="logo-placeholder">{{ substr($company->name, 0, 2) }}</div>
-        @endif
-
-        <div class="company-block">
-            <div class="company-name">{{ strtoupper($company->name) }}</div>
-            <div class="company-info">
-                @if(isset($company->address) && $company->address)
-                    {{ $company->address }}<br>
-                @endif
-                @if(isset($company->phone) && $company->phone)
-                    Tel: {{ $company->phone }}
-                @endif
-                @if(isset($company->email) && $company->email)
-                    &nbsp;|&nbsp; {{ $company->email }}
-                @endif
+        @if($language === 'ar')
+            {{-- Arabic: company info left, logo right --}}
+            <div class="company-block">
+                <div class="company-name">{{ strtoupper($company->name) }}</div>
+                <div class="company-info">
+                    @if(isset($company->address) && $company->address)
+                        {{ $company->address }}<br>
+                    @endif
+                    @if(isset($company->phone) && $company->phone)
+                        {{ $company->phone }} :هاتف
+                    @endif
+                    @if(isset($company->email) && $company->email)
+                        &nbsp;|&nbsp; {{ $company->email }}
+                    @endif
+                </div>
             </div>
-        </div>
+
+            @if(isset($logo) && $logo && file_exists($logo))
+                <img src="{{ $logo }}" class="logo" alt="{{ $company->name }}">
+            @else
+                <div class="logo-placeholder">{{ substr($company->name, 0, 2) }}</div>
+            @endif
+
+        @else
+            {{-- English: logo left, company info right --}}
+            @if(isset($logo) && $logo && file_exists($logo))
+                <img src="{{ $logo }}" class="logo" alt="{{ $company->name }}">
+            @else
+                <div class="logo-placeholder">{{ substr($company->name, 0, 2) }}</div>
+            @endif
+
+            <div class="company-block">
+                <div class="company-name">{{ strtoupper($company->name) }}</div>
+                <div class="company-info">
+                    @if(isset($company->address) && $company->address)
+                        {{ $company->address }}<br>
+                    @endif
+                    @if(isset($company->phone) && $company->phone)
+                        Tel: {{ $company->phone }}
+                    @endif
+                    @if(isset($company->email) && $company->email)
+                        &nbsp;|&nbsp; {{ $company->email }}
+                    @endif
+                </div>
+            </div>
+        @endif
 
     </div>
 </div>
 
-{{-- ═══ FIXED FOOTER ═══ --}}
+{{-- FIXED FOOTER --}}
 <div class="footer">
-    <div class="footer-left">Confidential — {{ $company->name }}</div>
+    <div class="footer-left">
+        {{ $language === 'ar' ? 'سري — ' : 'Confidential — ' }}{{ $company->name }}
+    </div>
     <div class="footer-right">
-        Contract No: {{ $contractNumber }}<br>
+        {{ $language === 'ar' ? 'رقم العقد' : 'Contract No' }}: {{ $contractNumber }}<br>
         <span class="page-number"></span>
     </div>
 </div>
 
-{{-- ═══ DOCUMENT TITLE ═══ --}}
+{{-- DOCUMENT TITLE --}}
 <div class="document-title">
     <h1>{{ $documentTitle }}</h1>
-    <div class="doc-subtitle">Contract Date: {{ $contractDate }}</div>
+    <div class="doc-subtitle">
+        {{ $language === 'ar' ? 'تاريخ العقد' : 'Contract Date' }}: {{ $contractDate }}
+    </div>
 </div>
 
-{{-- ═══ CONTRACT INFO BOX ═══ --}}
+{{-- CONTRACT INFO BOX --}}
 <table class="contract-box">
     <tr>
-        <td class="label">Contract Number</td>
+        <td class="label">{{ $language === 'ar' ? 'رقم العقد' : 'Contract Number' }}</td>
         <td class="value">{{ $contractNumber }}</td>
     </tr>
     <tr>
-        <td class="label">Client Name</td>
+        <td class="label">{{ $language === 'ar' ? 'اسم العميل' : 'Client Name' }}</td>
         <td class="value">{{ $client->name }}</td>
     </tr>
     <tr>
-        <td class="label">Client Address</td>
+        <td class="label">{{ $language === 'ar' ? 'عنوان العميل' : 'Client Address' }}</td>
         <td class="value">{{ $clientAddress }}</td>
     </tr>
     <tr>
-        <td class="label">Contract Date</td>
+        <td class="label">{{ $language === 'ar' ? 'تاريخ العقد' : 'Contract Date' }}</td>
         <td class="value">{{ $contractDate }}</td>
     </tr>
     <tr>
-        <td class="label">Delivery Date</td>
+        <td class="label">{{ $language === 'ar' ? 'تاريخ التسليم' : 'Delivery Date' }}</td>
         <td class="value">{{ $deliveryDate }}</td>
     </tr>
     <tr>
-        <td class="label">Project Amount</td>
+        <td class="label">{{ $language === 'ar' ? 'مبلغ المشروع' : 'Project Amount' }}</td>
         <td class="value"><strong>{{ $amount }} {{ $currency ?? 'AED' }}</strong></td>
     </tr>
 </table>
 
-{{-- ═══ DYNAMIC CONTENT ═══ --}}
+{{-- DYNAMIC CONTENT --}}
 <div class="content-area">
     {!! $content !!}
 </div>
 
-{{-- ═══ SIGNATURE BLOCK ═══ --}}
+{{-- SIGNATURE BLOCK --}}
 <div class="signature-section">
-    <div class="sig-title">Authorized Signatures</div>
+    <div class="sig-title">
+        {{ $language === 'ar' ? 'التوقيعات المعتمدة' : 'Authorized Signatures' }}
+    </div>
     <table class="signature-table">
         <tr>
             <td>
                 <div class="sig-name">{{ $company->name }}</div>
-                <div class="sig-role">Service Provider</div>
+                <div class="sig-role">{{ $language === 'ar' ? 'مزود الخدمة' : 'Service Provider' }}</div>
                 <div class="sig-line"></div>
-                <div>Authorized Signature</div>
-                <div class="sig-date">Date: _______________</div>
+                <div>{{ $language === 'ar' ? 'التوقيع المعتمد' : 'Authorized Signature' }}</div>
+                <div class="sig-date">{{ $language === 'ar' ? 'التاريخ' : 'Date' }}: _______________</div>
             </td>
             <td>
                 <div class="sig-name">{{ $client->name }}</div>
-                <div class="sig-role">Client</div>
+                <div class="sig-role">{{ $language === 'ar' ? 'العميل' : 'Client' }}</div>
                 <div class="sig-line"></div>
-                <div>Client Signature</div>
-                <div class="sig-date">Date: _______________</div>
+                <div>{{ $language === 'ar' ? 'توقيع العميل' : 'Client Signature' }}</div>
+                <div class="sig-date">{{ $language === 'ar' ? 'التاريخ' : 'Date' }}: _______________</div>
             </td>
         </tr>
     </table>

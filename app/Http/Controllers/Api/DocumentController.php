@@ -30,6 +30,7 @@ class DocumentController extends Controller
             'contract_date'   => 'nullable|string',
             'delivery_date'   => 'nullable|string',
             'amount'          => 'nullable|string',
+            'language'        => 'nullable|in:en,ar',
         ]);
 
         $user      = $request->user();
@@ -54,6 +55,9 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Invalid data'], 404);
         }
 
+        // ── LANGUAGE ────────────────────────────────────────────────────────
+        $language = $request->language ?? 'en';
+
         // ── CONTRACT NUMBER AUTO-GENERATION ─────────────────────────────────
         $year        = Carbon::now()->year;
         $companySlug = strtolower(trim($company->name));
@@ -72,7 +76,6 @@ class DocumentController extends Controller
             };
 
         } else {
-            // Generic prefix: first 4 letters of company name, uppercase
             $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $company->name), 0, 4));
         }
 
@@ -84,15 +87,15 @@ class DocumentController extends Controller
         $content = $template->content;
 
         $placeholders = [
-            '{{client_name}}'    => $client->name,
-            '{{company_name}}'   => $company->name,
-            '{{price}}'          => $request->price,
-            '{{contract_number}}'=> $generatedContractNumber,
-            '{{client_address}}' => $request->client_address ?? '',
-            '{{contract_date}}'  => $request->contract_date  ?? '',
-            '{{delivery_date}}'  => $request->delivery_date  ?? '',
-            '{{amount}}'         => $request->amount          ?? '',
-            '{{currency}}'       => 'AED',
+            '{{client_name}}'     => $client->name,
+            '{{company_name}}'    => $company->name,
+            '{{price}}'           => $request->price,
+            '{{contract_number}}' => $generatedContractNumber,
+            '{{client_address}}'  => $request->client_address ?? '',
+            '{{contract_date}}'   => $request->contract_date  ?? '',
+            '{{delivery_date}}'   => $request->delivery_date  ?? '',
+            '{{amount}}'          => $request->amount          ?? '',
+            '{{currency}}'        => 'AED',
         ];
 
         $content = str_replace(array_keys($placeholders), array_values($placeholders), $content);
@@ -107,7 +110,6 @@ class DocumentController extends Controller
         ]);
 
         // ── LOGO RESOLUTION ──────────────────────────────────────────────────
-        // Tries: public/logos/{slug}.png → .jpg → .jpeg → fallback empty
         $logo = $this->resolveLogo($companySlug);
 
         // ── PDF GENERATION ───────────────────────────────────────────────────
@@ -122,6 +124,7 @@ class DocumentController extends Controller
             'amount'         => $request->amount           ?? '',
             'content'        => $content,
             'documentTitle'  => $template->name,
+            'language'       => $language,
         ]);
 
         $pdf->setPaper('A4', 'portrait');
@@ -142,8 +145,6 @@ class DocumentController extends Controller
     /*
     |--------------------------------------------------------------------------
     | LOGO RESOLUTION (private helper)
-    | Looks for: public/logos/{slug}.png / .jpg / .jpeg
-    | Returns full path for DomPDF, or '' if not found
     |--------------------------------------------------------------------------
     */
     private function resolveLogo(string $companySlug): string
@@ -157,7 +158,6 @@ class DocumentController extends Controller
             }
         }
 
-        // Fallback: no logo (Blade already handles empty string gracefully)
         return '';
     }
 
