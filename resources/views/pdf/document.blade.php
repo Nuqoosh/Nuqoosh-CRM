@@ -63,7 +63,7 @@ body {
 }
 
 .logo {
-    height: 55px;
+    height: auto;
     max-width: 180px;
     object-fit: contain;
 }
@@ -73,12 +73,20 @@ body {
     width: 55px;
     height: 55px;
     background: #0b1f3a;
-    color: white;
     border-radius: 8px;
+    border-collapse: collapse;
+}
+
+.logo-placeholder td {
+    width: 55px;
+    height: 55px;
     text-align: center;
-    line-height: 55px;
+    vertical-align: middle;
+    color: #fff;
     font-weight: bold;
     font-size: 20px;
+    line-height: 1;
+    padding: 0;
 }
 
 .company-name {
@@ -327,7 +335,11 @@ body {
                 @if(isset($logo) && $logo && file_exists($logo))
                     <img src="{{ $logo }}" class="logo" alt="{{ $company->name }}">
                 @else
-                    <div class="logo-placeholder">{{ substr($company->name, 0, 2) }}</div>
+                    <table class="logo-placeholder">
+                        <tr>
+                            <td>{{ substr($company->name, 0, 2) }}</td>
+                        </tr>
+                    </table>
                 @endif
             </div>
         @else
@@ -335,7 +347,11 @@ body {
                 @if(isset($logo) && $logo && file_exists($logo))
                     <img src="{{ $logo }}" class="logo" alt="{{ $company->name }}">
                 @else
-                    <div class="logo-placeholder">{{ substr($company->name, 0, 2) }}</div>
+                    <table class="logo-placeholder">
+                        <tr>
+                            <td>{{ substr($company->name, 0, 2) }}</td>
+                        </tr>
+                    </table>
                 @endif
             </div>
 
