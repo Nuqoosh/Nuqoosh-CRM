@@ -5,6 +5,11 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
+/**
+ * Ensures the authenticated user has an active company selected, and that
+ * they actually belong to that company. Used on routes that require
+ * company-scoped data (clients, templates, documents, etc.).
+ */
 class CheckCompanyAccess
 {
     public function handle(Request $request, Closure $next)
@@ -25,7 +30,8 @@ class CheckCompanyAccess
             ], 400);
         }
 
-        // 🔥 IMPORTANT: check user belongs to company
+        // Important: confirm the user is actually a member of this company,
+        // not just that active_company_id happens to be set.
         $belongs = $user->companies()
             ->where('companies.id', $companyId)
             ->exists();

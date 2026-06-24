@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <style>
 
+/* ── Arabic font (used when $language === 'ar') ───────────────────────── */
 @font-face {
     font-family: 'Cairo';
     src: url('{{ public_path("fonts/Cairo-Regular.ttf") }}');
@@ -12,7 +13,7 @@
 
 @page {
     size: A4;
-    margin: 140px 50px 100px 50px;
+    margin: 155px 50px 105px 50px;
 }
 
 * {
@@ -26,22 +27,39 @@ body {
     color: #2d2d2d;
     direction: {{ $language === 'ar' ? 'rtl' : 'ltr' }};
     text-align: {{ $language === 'ar' ? 'right' : 'left' }};
+    margin: 0;
+    padding: 0;
 }
 
-/* HEADER */
+/* ── HEADER (fixed, repeats on every page) ─────────────────────────────── */
 .header {
     position: fixed;
-    top: -125px;
+    top: -137px;
     left: 0;
     right: 0;
+    height: 110px;
     padding-bottom: 12px;
     border-bottom: 3px solid #0b1f3a;
 }
 
 .header-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.header-col {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.header-col-logo {
+    width: 45%;
+}
+
+.header-col-company {
+    width: 55%;
+    text-align: {{ $language === 'ar' ? 'left' : 'right' }};
 }
 
 .logo {
@@ -50,21 +68,17 @@ body {
     object-fit: contain;
 }
 
+/* Shown when no logo file is found for the company. */
 .logo-placeholder {
     width: 55px;
     height: 55px;
     background: #0b1f3a;
     color: white;
     border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    text-align: center;
+    line-height: 55px;
     font-weight: bold;
     font-size: 20px;
-}
-
-.company-block {
-    text-align: {{ $language === 'ar' ? 'left' : 'right' }};
 }
 
 .company-name {
@@ -81,19 +95,28 @@ body {
     line-height: 1.6;
 }
 
-/* FOOTER */
+/* ── FOOTER (fixed, repeats on every page) ─────────────────────────────── */
 .footer {
     position: fixed;
-    bottom: -80px;
+    bottom: -85px;
     left: 0;
     right: 0;
+    height: 70px;
     border-top: 1px solid #d1d5db;
     padding-top: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     font-size: 10px;
     color: #999;
+}
+
+.footer-inner {
+    display: table;
+    width: 100%;
+}
+
+.footer-col {
+    display: table-cell;
+    vertical-align: top;
+    width: 50%;
 }
 
 .footer-left {
@@ -104,10 +127,10 @@ body {
     text-align: {{ $language === 'ar' ? 'left' : 'right' }};
 }
 
-/* DOCUMENT TITLE */
+/* ── DOCUMENT TITLE ─────────────────────────────────────────────────────── */
 .document-title {
     text-align: center;
-    margin-bottom: 28px;
+    margin: 0 0 28px 0;
     padding-bottom: 14px;
     border-bottom: 1px solid #e5e7eb;
 }
@@ -125,7 +148,7 @@ body {
     color: #888;
 }
 
-/* CONTRACT INFO TABLE */
+/* ── CONTRACT INFO TABLE ────────────────────────────────────────────────── */
 .contract-box {
     width: 100%;
     border-collapse: collapse;
@@ -158,7 +181,7 @@ body {
     color: #333;
 }
 
-/* SECTION HEADING */
+/* ── SECTION HEADING (used inside the dynamic template content) ─────────── */
 .section-title {
     background: #0b1f3a;
     color: #fff;
@@ -171,7 +194,7 @@ body {
     text-transform: uppercase;
 }
 
-/* DYNAMIC CONTENT */
+/* ── DYNAMIC CONTENT (the template's HTML body, placeholders replaced) ──── */
 .content-area {
     margin-top: 10px;
     line-height: 1.9;
@@ -207,7 +230,7 @@ body {
     margin-bottom: 4px;
 }
 
-/* SIGNATURE BLOCK */
+/* ── SIGNATURE BLOCK ────────────────────────────────────────────────────── */
 .signature-section {
     margin-top: 60px;
     page-break-inside: avoid;
@@ -270,7 +293,7 @@ body {
     margin-top: 6px;
 }
 
-/* PAGE NUMBER */
+/* ── PAGE NUMBER (in footer) ────────────────────────────────────────────── */
 .page-number:before {
     content: "Page " counter(page) " of " counter(pages);
 }
@@ -280,13 +303,12 @@ body {
 
 <body>
 
-{{-- FIXED HEADER --}}
+{{-- FIXED HEADER: logo + company name/info. Side order flips for Arabic. --}}
 <div class="header">
     <div class="header-inner">
 
         @if($language === 'ar')
-            {{-- Arabic: company info left, logo right --}}
-            <div class="company-block">
+            <div class="header-col header-col-company">
                 <div class="company-name">{{ strtoupper($company->name) }}</div>
                 <div class="company-info">
                     @if(isset($company->address) && $company->address)
@@ -301,21 +323,23 @@ body {
                 </div>
             </div>
 
-            @if(isset($logo) && $logo && file_exists($logo))
-                <img src="{{ $logo }}" class="logo" alt="{{ $company->name }}">
-            @else
-                <div class="logo-placeholder">{{ substr($company->name, 0, 2) }}</div>
-            @endif
-
+            <div class="header-col header-col-logo">
+                @if(isset($logo) && $logo && file_exists($logo))
+                    <img src="{{ $logo }}" class="logo" alt="{{ $company->name }}">
+                @else
+                    <div class="logo-placeholder">{{ substr($company->name, 0, 2) }}</div>
+                @endif
+            </div>
         @else
-            {{-- English: logo left, company info right --}}
-            @if(isset($logo) && $logo && file_exists($logo))
-                <img src="{{ $logo }}" class="logo" alt="{{ $company->name }}">
-            @else
-                <div class="logo-placeholder">{{ substr($company->name, 0, 2) }}</div>
-            @endif
+            <div class="header-col header-col-logo">
+                @if(isset($logo) && $logo && file_exists($logo))
+                    <img src="{{ $logo }}" class="logo" alt="{{ $company->name }}">
+                @else
+                    <div class="logo-placeholder">{{ substr($company->name, 0, 2) }}</div>
+                @endif
+            </div>
 
-            <div class="company-block">
+            <div class="header-col header-col-company">
                 <div class="company-name">{{ strtoupper($company->name) }}</div>
                 <div class="company-info">
                     @if(isset($company->address) && $company->address)
@@ -334,14 +358,16 @@ body {
     </div>
 </div>
 
-{{-- FIXED FOOTER --}}
+{{-- FIXED FOOTER: confidentiality note, contract number, page number --}}
 <div class="footer">
-    <div class="footer-left">
-        {{ $language === 'ar' ? 'سري — ' : 'Confidential — ' }}{{ $company->name }}
-    </div>
-    <div class="footer-right">
-        {{ $language === 'ar' ? 'رقم العقد' : 'Contract No' }}: {{ $contractNumber }}<br>
-        <span class="page-number"></span>
+    <div class="footer-inner">
+        <div class="footer-col footer-left">
+            {{ $language === 'ar' ? 'سري — ' : 'Confidential — ' }}{{ $company->name }}
+        </div>
+        <div class="footer-col footer-right">
+            {{ $language === 'ar' ? 'رقم العقد' : 'Contract No' }}: {{ $contractNumber }}<br>
+            <span class="page-number"></span>
+        </div>
     </div>
 </div>
 
@@ -353,7 +379,7 @@ body {
     </div>
 </div>
 
-{{-- CONTRACT INFO BOX --}}
+{{-- CONTRACT INFO BOX: contract number, client, dates, amount --}}
 <table class="contract-box">
     <tr>
         <td class="label">{{ $language === 'ar' ? 'رقم العقد' : 'Contract Number' }}</td>
@@ -381,12 +407,13 @@ body {
     </tr>
 </table>
 
-{{-- DYNAMIC CONTENT --}}
+{{-- DYNAMIC CONTENT: the template's HTML body (placeholders already replaced
+     by the controller before this view is rendered). --}}
 <div class="content-area">
     {!! $content !!}
 </div>
 
-{{-- SIGNATURE BLOCK --}}
+{{-- SIGNATURE BLOCK: Service Provider (company) + Client signature lines --}}
 <div class="signature-section">
     <div class="sig-title">
         {{ $language === 'ar' ? 'التوقيعات المعتمدة' : 'Authorized Signatures' }}

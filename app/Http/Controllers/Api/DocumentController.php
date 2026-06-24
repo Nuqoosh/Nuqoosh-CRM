@@ -18,6 +18,9 @@ class DocumentController extends Controller
     |--------------------------------------------------------------------------
     | GENERATE DOCUMENT
     |--------------------------------------------------------------------------
+    | Validates the request, resolves the template/client/company, builds the
+    | auto-generated contract number (per-company prefix logic), replaces
+    | template placeholders, saves the Document row, and renders the PDF.
     */
     public function generate(Request $request)
     {
@@ -37,6 +40,7 @@ class DocumentController extends Controller
         $companyId = $user->active_company_id;
 
         // ── SECURITY CHECK ──────────────────────────────────────────────────
+        // The user must have an active company, and must actually belong to it.
         if (!$companyId || !$user->companies()->where('companies.id', $companyId)->exists()) {
             return response()->json(['message' => 'Unauthorized company access'], 403);
         }
@@ -45,7 +49,7 @@ class DocumentController extends Controller
             ->where('company_id', $companyId)
             ->first();
 
-        $client  = Client::where('id', $request->client_id)
+        $client = Client::where('id', $request->client_id)
             ->where('company_id', $companyId)
             ->first();
 
@@ -59,15 +63,23 @@ class DocumentController extends Controller
         $language = $request->language ?? 'en';
 
         // ── CONTRACT NUMBER AUTO-GENERATION ─────────────────────────────────
+        // Prefix depends on the active company and, for some companies, the
+        // template's category/sub-category. Add new companies/categories here.
         $year        = Carbon::now()->year;
         $companySlug = strtolower(trim($company->name));
         $category    = strtolower(trim($template->category ?? ''));
         $subCategory = trim($template->sub_category ?? '');
 
         if ($companySlug === 'vmc') {
-            $prefix = $category === 'nda' ? 'VMC-NDA' : 'VMC-CON';
+            // VMC: prefix is driven by category (NDA / MNDA / everything else).
+            $prefix = match ($category) {
+                'nda'   => 'VMC-NDA',
+                'mnda'  => 'VMC-MNDA',
+                default => 'VMC-CON',
+            };
 
         } elseif ($companySlug === 'nuqoosh') {
+            // Nuqoosh: prefix is driven by the Contract sub-category.
             $prefix = match ($subCategory) {
                 'Website Only'        => 'NQ-WE',
                 'Website + Branding'  => 'NQ-WB',
@@ -76,6 +88,7 @@ class DocumentController extends Controller
             };
 
         } else {
+            // Fallback for any other company: first 4 letters of its name, uppercased.
             $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $company->name), 0, 4));
         }
 
@@ -84,6 +97,7 @@ class DocumentController extends Controller
         $generatedContractNumber = $prefix . '-' . $year . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
 
         // ── TEMPLATE ENGINE ──────────────────────────────────────────────────
+        // Simple {{placeholder}} substitution against the template's stored HTML.
         $content = $template->content;
 
         $placeholders = [
@@ -94,7 +108,7 @@ class DocumentController extends Controller
             '{{client_address}}'  => $request->client_address ?? '',
             '{{contract_date}}'   => $request->contract_date  ?? '',
             '{{delivery_date}}'   => $request->delivery_date  ?? '',
-            '{{amount}}'          => $request->amount          ?? '',
+            '{{amount}}'          => $request->amount         ?? '',
             '{{currency}}'        => 'AED',
         ];
 
@@ -103,10 +117,10 @@ class DocumentController extends Controller
         // ── SAVE DOCUMENT ────────────────────────────────────────────────────
         $document = Document::create([
             'company_id'           => $companyId,
-            'client_id'            => $client->id,
+            'client_id'             => $client->id,
             'document_template_id' => $template->id,
-            'content'              => $content,
-            'contract_number'      => $generatedContractNumber,
+            'content'               => $content,
+            'contract_number'       => $generatedContractNumber,
         ]);
 
         // ── LOGO RESOLUTION ──────────────────────────────────────────────────
@@ -118,10 +132,10 @@ class DocumentController extends Controller
             'company'        => $company,
             'logo'           => $logo,
             'contractNumber' => $generatedContractNumber,
-            'clientAddress'  => $request->client_address  ?? '',
-            'contractDate'   => $request->contract_date   ?? '',
-            'deliveryDate'   => $request->delivery_date   ?? '',
-            'amount'         => $request->amount           ?? '',
+            'clientAddress'  => $request->client_address ?? '',
+            'contractDate'   => $request->contract_date  ?? '',
+            'deliveryDate'   => $request->delivery_date  ?? '',
+            'amount'         => $request->amount         ?? '',
             'content'        => $content,
             'documentTitle'  => $template->name,
             'language'       => $language,
@@ -146,6 +160,8 @@ class DocumentController extends Controller
     |--------------------------------------------------------------------------
     | LOGO RESOLUTION (private helper)
     |--------------------------------------------------------------------------
+    | Looks up /public/logos/{company-slug}.{png|jpg|jpeg} and returns the
+    | first match, or an empty string if no logo file exists.
     */
     private function resolveLogo(string $companySlug): string
     {
@@ -165,6 +181,7 @@ class DocumentController extends Controller
     |--------------------------------------------------------------------------
     | DOCUMENT LIST
     |--------------------------------------------------------------------------
+    | Returns all documents belonging to the user's active company.
     */
     public function index(Request $request)
     {
@@ -184,6 +201,8 @@ class DocumentController extends Controller
     |--------------------------------------------------------------------------
     | DOWNLOAD DOCUMENT
     |--------------------------------------------------------------------------
+    | Streams the previously generated PDF for a document owned by the
+    | user's active company.
     */
     public function download($id, Request $request)
     {

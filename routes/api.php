@@ -14,7 +14,7 @@ use App\Http\Controllers\Api\DocumentTemplateController;
 */
 Route::get('/test', function () {
     return response()->json([
-        'message' => 'CRM API is working fine 🚀'
+        'message' => 'CRM API is working fine'
     ]);
 });
 
@@ -24,6 +24,14 @@ Route::get('/test', function () {
 |--------------------------------------------------------------------------
 */
 Route::post('/login', [AuthController::class, 'login']);
+
+/*
+|--------------------------------------------------------------------------
+| AUTH (AUTHENTICATED — no active company required)
+|--------------------------------------------------------------------------
+*/
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 
 /*
 |--------------------------------------------------------------------------
@@ -38,7 +46,6 @@ Route::post('/companies', [CompanyController::class, 'store'])
 // SELECT ACTIVE COMPANY
 Route::post('/companies/select', [CompanyController::class, 'select'])
     ->middleware('auth:sanctum');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -60,9 +67,7 @@ Route::middleware(['auth:sanctum', 'company.access'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/clients', [ClientController::class, 'index']);
-
     Route::post('/clients', [ClientController::class, 'store']);
-
     Route::delete('/clients/{id}', [ClientController::class, 'destroy']);
 
     /*
@@ -71,9 +76,7 @@ Route::middleware(['auth:sanctum', 'company.access'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/documents', [DocumentController::class, 'index']);
-
     Route::post('/documents/generate', [DocumentController::class, 'generate']);
-
     Route::get('/documents/download/{id}', [DocumentController::class, 'download']);
 
     /*
@@ -82,16 +85,12 @@ Route::middleware(['auth:sanctum', 'company.access'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/document-template-categories', [DocumentTemplateController::class, 'categories']);
-
     Route::get('/document-templates', [DocumentTemplateController::class, 'index']);
 
+    // Only template creation requires the admin role.
     Route::post('/document-templates', [DocumentTemplateController::class, 'store'])
-        ->middleware('role:admin');  // sirf yahan role check hai
+        ->middleware('role:admin');
 
     Route::post('/document-templates/{id}/generate', [DocumentTemplateController::class, 'generate']);
-     
-    // routes/api.php mein add karo:
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 
-    });
+});
