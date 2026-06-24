@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\DocumentTemplateController;
+use App\Http\Controllers\Api\AnalyticsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,6 +79,7 @@ Route::middleware(['auth:sanctum', 'company.access'])->group(function () {
     Route::get('/documents', [DocumentController::class, 'index']);
     Route::post('/documents/generate', [DocumentController::class, 'generate']);
     Route::get('/documents/download/{id}', [DocumentController::class, 'download']);
+    Route::get('/analytics', [AnalyticsController::class, 'index']);
 
     /*
     |--------------------------------------------------------------------------

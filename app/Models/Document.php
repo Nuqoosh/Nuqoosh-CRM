@@ -37,14 +37,15 @@ class Document extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'company_id',
-        'client_id',
-        'document_template_id',
-        'content',
-        'pdf_path',
-        'contract_number',
-        'created_by'
-    ];
+    'company_id',
+    'client_id',
+    'document_template_id',
+    'content',
+    'pdf_path',
+    'contract_number',
+    'amount',
+    'created_by'
+];
 
     /**
      * The attributes that should be cast.

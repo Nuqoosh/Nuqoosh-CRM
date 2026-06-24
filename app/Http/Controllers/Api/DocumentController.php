@@ -114,14 +114,15 @@ class DocumentController extends Controller
 
         $content = str_replace(array_keys($placeholders), array_values($placeholders), $content);
 
-        // ── SAVE DOCUMENT ────────────────────────────────────────────────────
-        $document = Document::create([
-            'company_id'           => $companyId,
-            'client_id'             => $client->id,
-            'document_template_id' => $template->id,
-            'content'               => $content,
-            'contract_number'       => $generatedContractNumber,
-        ]);
+       // ── SAVE DOCUMENT ────────────────────────────────────────────────────
+    $document = Document::create([
+    'company_id'           => $companyId,
+    'client_id'             => $client->id,
+    'document_template_id' => $template->id,
+    'content'               => $content,
+    'contract_number'       => $generatedContractNumber,
+    'amount'                => $request->amount ? (float) preg_replace('/[^0-9.]/', '', $request->amount) : null,
+]);
 
         // ── LOGO RESOLUTION ──────────────────────────────────────────────────
         $logo = $this->resolveLogo($companySlug);
