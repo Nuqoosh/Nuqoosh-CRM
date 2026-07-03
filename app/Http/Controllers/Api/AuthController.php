@@ -12,17 +12,17 @@ use Illuminate\Validation\ValidationException;
 /**
  * Class AuthController
  * @package App\Http\Controllers\Api
- * 
+ *
  * Handles user authentication (login, logout, registration)
  */
 class AuthController extends Controller
 {
     /**
      * Authenticate user and generate API token
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
-     * 
+     *
      * @throws ValidationException
      */
     public function login(Request $request)
@@ -37,7 +37,7 @@ class AuthController extends Controller
         $key = 'login-attempts:' . $request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
             return response()->json([
-                'message' => 'Too many login attempts. Please try again in ' . 
+                'message' => 'Too many login attempts. Please try again in ' .
                             RateLimiter::availableIn($key) . ' seconds.'
             ], 429);
         }
@@ -66,24 +66,27 @@ class AuthController extends Controller
         $user->load('companies');
 
         return response()->json([
-            'status'    => 'success',
-            'message'   => 'Login successful',
-            'token'     => $token,
-            'token_type' => 'Bearer',
-            'user'      => [
-                'id'    => $user->id,
-                'name'  => $user->name,
-                'email' => $user->email,
+            'status'      => 'success',
+            'message'     => 'Login successful',
+            'token'       => $token,
+            'token_type'  => 'Bearer',
+            'user'        => [
+                'id'                => $user->id,
+                'name'              => $user->name,
+                'email'             => $user->email,
                 'active_company_id' => $user->active_company_id
             ],
-            'roles'     => $user->getRoleNames(),
-            'companies' => $user->companies ?? []
+            'roles'       => $user->getRoleNames(),
+            // Added: frontend stores this on login so it can gate UI without
+            // a separate /me call. Matches what me() already returns.
+            'permissions' => $user->getAllPermissions()->pluck('name'),
+            'companies'   => $user->companies ?? []
         ]);
     }
 
     /**
      * Logout user and revoke token
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -100,7 +103,7 @@ class AuthController extends Controller
 
     /**
      * Get authenticated user details
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -110,9 +113,9 @@ class AuthController extends Controller
         $user->load('companies');
 
         return response()->json([
-            'user'      => $user,
-            'roles'     => $user->getRoleNames(),
-            'companies' => $user->companies,
+            'user'        => $user,
+            'roles'       => $user->getRoleNames(),
+            'companies'   => $user->companies,
             'permissions' => $user->getAllPermissions()->pluck('name')
         ]);
     }

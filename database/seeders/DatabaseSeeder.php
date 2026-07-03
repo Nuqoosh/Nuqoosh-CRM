@@ -9,11 +9,18 @@ use App\Models\Company;
 use App\Models\Client;
 use App\Models\DocumentTemplate;
 use App\Models\Document;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // ═══════════════════════════════════════════════════════════════
+        // 0. ROLES & PERMISSIONS (must run before assigning roles to users)
+        // ═══════════════════════════════════════════════════════════════
+
+        $this->call(RolesAndPermissionsSeeder::class);
+
         // ═══════════════════════════════════════════════════════════════
         // 1. CREATE COMPANIES
         // ═══════════════════════════════════════════════════════════════
@@ -63,6 +70,19 @@ class DatabaseSeeder extends Seeder
         // Attach users to companies
         $user1->companies()->attach([$nuqoosh->id, $vmc->id, $hobs->id]);
         $user2->companies()->attach([$vmc->id]);
+
+        // ─────────────────────────────────────────────────────────────
+        // Assign roles (requires HasRoles trait on the User model)
+        // Guard is passed explicitly ('web') — Spatie resolves guards from
+        // config/auth.php guard keys ('web', 'api'), NOT from Sanctum's driver
+        // name. 'web' is the standard Spatie+Sanctum pattern.
+        // used throughout routes/api.php. Role names are lowercase
+        // slugs to match the existing role:admin middleware and
+        // User::isAdmin() which already checks hasRole('admin') /
+        // hasRole('super-admin').
+        // ─────────────────────────────────────────────────────────────
+        $user1->assignRole(Role::findByName('super-admin', 'web'));
+        $user2->assignRole(Role::findByName('admin', 'web')); // adjust to 'office-manager' if that fits the job better
         
         // ═══════════════════════════════════════════════════════════════
         // 3. CREATE CLIENTS (For Nuqoosh)
