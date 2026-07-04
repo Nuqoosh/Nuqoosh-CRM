@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Class User
  * @package App\Models
- * 
+ *
  * @property int $id
  * @property string $name
  * @property string $email
@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $remember_token
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * 
+ *
  * @property-read \Illuminate\Database\Eloquent\Collection|Company[] $companies
  * @property-read \Illuminate\Database\Eloquent\Collection|Document[] $documents
  * @property-read \Illuminate\Database\Eloquent\Collection|DocumentTemplate[] $templates
@@ -31,6 +31,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
+
+    /**
+     * Forces Spatie to always resolve permissions against the 'web' guard,
+     * consistent with how roles/permissions were seeded in
+     * RolesAndPermissionsSeeder (guard_name = 'web').
+     *
+     * Without this, Spatie tries to resolve the guard from the Sanctum
+     * authentication context at request time — which doesn't match the
+     * 'web' guard used when the roles/permissions were created — causing
+     * permission checks to silently fail with 403 even when the user has
+     * the correct role assigned.
+     */
+    protected $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.
@@ -41,7 +54,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'active_company_id'
+        'active_company_id',
     ];
 
     /**
@@ -61,13 +74,13 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'active_company_id' => 'integer'
+        'created_at'        => 'datetime',
+        'updated_at'        => 'datetime',
+        'active_company_id' => 'integer',
     ];
 
     /**
-     * Get the companies this user belongs to (many-to-many)
+     * Get the companies this user belongs to (many-to-many).
      */
     public function companies(): BelongsToMany
     {
@@ -77,7 +90,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the active company
+     * Get the active company.
      */
     public function activeCompany()
     {
@@ -85,7 +98,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get documents created by this user (if tracking)
+     * Get documents created by this user.
      */
     public function documents(): HasMany
     {
@@ -93,10 +106,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user belongs to a specific company
-     * 
-     * @param int $companyId
-     * @return bool
+     * Check if user belongs to a specific company.
      */
     public function belongsToCompany(int $companyId): bool
     {
@@ -104,22 +114,20 @@ class User extends Authenticatable
     }
 
     /**
-     * Get user's role in a specific company
-     * 
-     * @param int $companyId
-     * @return string|null
+     * Get user's pivot role in a specific company (company_user.role).
+     * This is the per-company pivot role — separate from Spatie global roles.
      */
     public function getCompanyRole(int $companyId): ?string
     {
         $company = $this->companies()
             ->where('companies.id', $companyId)
             ->first();
-            
+
         return $company ? $company->pivot->role : null;
     }
 
     /**
-     * Check if user is admin (globally)
+     * Check if user has a global admin role (Spatie).
      */
     public function isAdmin(): bool
     {
@@ -127,11 +135,10 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is admin for specific company
+     * Check if user has the admin pivot role for a specific company.
      */
     public function isCompanyAdmin(int $companyId): bool
     {
-        $role = $this->getCompanyRole($companyId);
-        return $role === 'admin';
+        return $this->getCompanyRole($companyId) === 'admin';
     }
 }
