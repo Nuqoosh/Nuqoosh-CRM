@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\DocumentTemplateController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\TaskController;
 
 /*
 |--------------------------------------------------------------------------
@@ -73,6 +74,37 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('/users/{id}', [UserController::class, 'destroy'])
         ->middleware('permission:users.delete,api');
+});
+
+/*
+|--------------------------------------------------------------------------
+| TASK MANAGEMENT (no company.access — employees see own tasks across
+| all their companies; manager list is scoped in the controller)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->group(function () {
+
+    // List: managers get active company's tasks, employees get their own.
+    // Everyone has tasks.view.own, so this is the gate for the module.
+    Route::get('/tasks', [TaskController::class, 'index'])
+        ->middleware('permission:tasks.view.own,api');
+
+    // Assignee dropdown data — company members (gated by tasks.create,
+    // not users.view, so office-manager can populate it too)
+    Route::get('/tasks/assignable-users', [TaskController::class, 'assignableUsers'])
+        ->middleware('permission:tasks.create,api');
+
+    // Create/assign — super-admin, admin, hr-manager, office-manager
+    Route::post('/tasks', [TaskController::class, 'store'])
+        ->middleware('permission:tasks.create,api');
+
+    // Status change — everyone (employees limited to own tasks in controller)
+    Route::patch('/tasks/{id}/status', [TaskController::class, 'updateStatus'])
+        ->middleware('permission:tasks.update.status,api');
+
+    // Delete — super-admin, admin
+    Route::delete('/tasks/{id}', [TaskController::class, 'destroy'])
+        ->middleware('permission:tasks.delete,api');
 });
 
 /*

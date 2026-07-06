@@ -30,6 +30,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'analytics.view',
             'users.view', 'users.create', 'users.edit', 'users.delete',
             'companies.switch', 'companies.manage',
+            'tasks.view.all', 'tasks.view.own', 'tasks.create',
+            'tasks.update.status', 'tasks.delete',
         ];
 
         foreach ($permissions as $permission) {
@@ -51,6 +53,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'analytics.view',
             'users.view', 'users.create', 'users.edit',
             'companies.switch',
+            'tasks.view.all', 'tasks.view.own', 'tasks.create',
+            'tasks.update.status', 'tasks.delete',
         ]);
 
         // hr-manager
@@ -59,6 +63,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'documents.view',
             'analytics.view',
             'users.view', 'users.create', 'users.edit',
+            'tasks.view.all', 'tasks.view.own', 'tasks.create', 'tasks.update.status',
         ]);
 
         // office-manager
@@ -68,14 +73,16 @@ class RolesAndPermissionsSeeder extends Seeder
             'templates.view', 'templates.create', 'templates.edit', 'templates.delete',
             'analytics.view',
             'companies.switch',
+            'tasks.view.all', 'tasks.view.own', 'tasks.create', 'tasks.update.status',
         ]);
 
         // employee
         $employee = Role::firstOrCreate(['name' => 'employee', 'guard_name' => self::GUARD]);
         $employee->syncPermissions([
-        'documents.view', 'documents.generate',
-         'templates.view', // needed to pick a template when generating documents
-       ]);
+            'documents.view', 'documents.generate',
+            'templates.view', // needed to pick a template when generating documents
+            'tasks.view.own', 'tasks.update.status',
+        ]);
 
         $this->command->info('✅ Roles & permissions seeded (guard: api)');
         $this->command->info('   Roles: super-admin, admin, hr-manager, office-manager, employee');
