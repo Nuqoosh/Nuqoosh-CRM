@@ -10,14 +10,15 @@ use Spatie\Permission\PermissionRegistrar;
 class RolesAndPermissionsSeeder extends Seeder
 {
     /**
-     * guard_name = 'web' is correct even for Sanctum API apps.
+     * guard_name = 'api' — matches the 'api' guard in config/auth.php
+     * whose driver is sanctum. Routes authenticate via auth:sanctum,
+     * and permission middleware uses permission:<name>,api so checks
+     * resolve against the same guard the roles were created with.
      *
-     * Spatie resolves guards from config/auth.php guard keys ('web', 'api'),
-     * NOT from Sanctum's driver name ('sanctum'). Using 'web' is the
-     * standard pattern for Spatie + Sanctum — Sanctum handles authentication,
-     * Spatie uses 'web' as the permission guard independently.
+     * NOT 'sanctum' (a driver name, not a guard — Spatie rejects it).
+     * NOT 'web' (session guard — Sanctum token users are null there).
      */
-    private const GUARD = 'web';
+    private const GUARD = 'api';
 
     public function run(): void
     {
@@ -72,10 +73,11 @@ class RolesAndPermissionsSeeder extends Seeder
         // employee
         $employee = Role::firstOrCreate(['name' => 'employee', 'guard_name' => self::GUARD]);
         $employee->syncPermissions([
-            'documents.view', 'documents.generate',
-        ]);
+        'documents.view', 'documents.generate',
+         'templates.view', // needed to pick a template when generating documents
+       ]);
 
-        $this->command->info('✅ Roles & permissions seeded (guard: web)');
+        $this->command->info('✅ Roles & permissions seeded (guard: api)');
         $this->command->info('   Roles: super-admin, admin, hr-manager, office-manager, employee');
         $this->command->info('   Permissions: ' . count($permissions));
     }

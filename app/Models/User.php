@@ -35,7 +35,7 @@ class User extends Authenticatable
     /**
      * Forces Spatie to always resolve permissions against the 'web' guard,
      * consistent with how roles/permissions were seeded in
-     * RolesAndPermissionsSeeder (guard_name = 'web').
+     * RolesAndPermissionsSeeder (guard_name = 'api').
      *
      * Without this, Spatie tries to resolve the guard from the Sanctum
      * authentication context at request time — which doesn't match the
@@ -43,7 +43,7 @@ class User extends Authenticatable
      * permission checks to silently fail with 403 even when the user has
      * the correct role assigned.
      */
-    protected $guard_name = 'web';
+    protected $guard_name = 'api';
 
     /**
      * The attributes that are mass assignable.

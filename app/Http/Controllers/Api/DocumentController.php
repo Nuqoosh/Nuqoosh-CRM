@@ -218,8 +218,14 @@ class DocumentController extends Controller
             return response()->json(['message' => 'File not found'], 404);
         }
 
-        return response()->download(
-            storage_path('app/public/' . $document->pdf_path)
-        );
+        $fullPath = storage_path('app/public/' . $document->pdf_path);
+
+        // Guard against DB/disk drift: pdf_path set but file deleted from
+        // disk would otherwise throw an exception (500) instead of a clean 404.
+        if (!file_exists($fullPath)) {
+            return response()->json(['message' => 'File not found on server'], 404);
+        }
+
+        return response()->download($fullPath);
     }
 }

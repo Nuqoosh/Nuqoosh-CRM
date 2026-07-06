@@ -81,8 +81,38 @@ class DatabaseSeeder extends Seeder
         // User::isAdmin() which already checks hasRole('admin') /
         // hasRole('super-admin').
         // ─────────────────────────────────────────────────────────────
-        $user1->assignRole(Role::findByName('super-admin', 'web'));
-        $user2->assignRole(Role::findByName('admin', 'web')); // adjust to 'office-manager' if that fits the job better
+        $user1->assignRole(Role::findByName('super-admin', 'api'));
+        $user2->assignRole(Role::findByName('admin', 'api'));
+
+        // ─────────────────────────────────────────────────────────────
+        // Test users for the remaining roles
+        // ─────────────────────────────────────────────────────────────
+        $hrUser = User::create([
+            'name'              => 'HR Manager',
+            'email'             => 'hr@example.com',
+            'password'          => Hash::make('password'),
+            'active_company_id' => $nuqoosh->id,
+        ]);
+        $hrUser->companies()->attach([$nuqoosh->id, $vmc->id, $hobs->id]);
+        $hrUser->assignRole(Role::findByName('hr-manager', 'api'));
+
+        $officeUser = User::create([
+            'name'              => 'Office Manager',
+            'email'             => 'office@example.com',
+            'password'          => Hash::make('password'),
+            'active_company_id' => $nuqoosh->id,
+        ]);
+        $officeUser->companies()->attach([$nuqoosh->id, $vmc->id, $hobs->id]);
+        $officeUser->assignRole(Role::findByName('office-manager', 'api'));
+
+        $employeeUser = User::create([
+            'name'              => 'Employee',
+            'email'             => 'employee@example.com',
+            'password'          => Hash::make('password'),
+            'active_company_id' => $nuqoosh->id,
+        ]);
+        $employeeUser->companies()->attach([$nuqoosh->id]);
+        $employeeUser->assignRole(Role::findByName('employee', 'api'));
         
         // ═══════════════════════════════════════════════════════════════
         // 3. CREATE CLIENTS (For Nuqoosh)
@@ -200,7 +230,14 @@ class DatabaseSeeder extends Seeder
         
         $this->command->info('✅ Database seeded successfully!');
         $this->command->info('   Companies: 3');
-        $this->command->info('   Users: 2');
+        $this->command->info('   Users: 5');
+        $this->command->info('');
+        $this->command->info('   Logins (password for all: password):');
+        $this->command->info('   admin@example.com    -> super-admin');
+        $this->command->info('   vmc@example.com      -> admin');
+        $this->command->info('   hr@example.com       -> hr-manager');
+        $this->command->info('   office@example.com   -> office-manager');
+        $this->command->info('   employee@example.com -> employee');
         $this->command->info('   Clients: 7');
         $this->command->info('   Templates: 6');
     }

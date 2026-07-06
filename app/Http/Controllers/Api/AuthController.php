@@ -34,7 +34,10 @@ class AuthController extends Controller
         ]);
 
         // Rate limiting (prevent brute force)
-        $key = 'login-attempts:' . $request->ip();
+        // Keyed on ip+email so one attacker can't lock out a whole office
+        // behind shared NAT, and rotating IPs alone doesn't reset the counter
+        // for a targeted account.
+        $key = 'login-attempts:' . $request->ip() . '|' . strtolower((string) $request->input('email'));
         if (RateLimiter::tooManyAttempts($key, 5)) {
             return response()->json([
                 'message' => 'Too many login attempts. Please try again in ' .
