@@ -27,12 +27,16 @@ class DocumentController extends Controller
         $request->validate([
             'client_id'       => 'required|exists:clients,id',
             'template_id'     => 'required|exists:document_templates,id',
-            'price'           => 'required',
+            // price is the display text for the {{price}} placeholder.
+            // Optional now — if absent, it is derived from the numeric amount.
+            'price'           => 'nullable|string|max:50',
             'contract_number' => 'nullable|string',
             'client_address'  => 'nullable|string',
             'contract_date'   => 'nullable|string',
             'delivery_date'   => 'nullable|string',
-            'amount'          => 'nullable|string',
+            // amount is the money figure used for analytics — strictly numeric
+            // so garbage like "abc" can no longer silently become null in the DB.
+            'amount'          => 'required|numeric|min:0',
             'language'        => 'nullable|in:en,ar',
         ]);
 
@@ -103,12 +107,12 @@ class DocumentController extends Controller
         $placeholders = [
             '{{client_name}}'     => $client->name,
             '{{company_name}}'    => $company->name,
-            '{{price}}'           => $request->price,
+            '{{price}}'           => $request->price ?: number_format((float) $request->amount, 2) . ' AED',
             '{{contract_number}}' => $generatedContractNumber,
             '{{client_address}}'  => $request->client_address ?? '',
             '{{contract_date}}'   => $request->contract_date  ?? '',
             '{{delivery_date}}'   => $request->delivery_date  ?? '',
-            '{{amount}}'          => $request->amount         ?? '',
+            '{{amount}}'          => number_format((float) $request->amount, 2),
             '{{currency}}'        => 'AED',
         ];
 
@@ -121,7 +125,7 @@ class DocumentController extends Controller
     'document_template_id' => $template->id,
     'content'               => $content,
     'contract_number'       => $generatedContractNumber,
-    'amount'                => $request->amount ? (float) preg_replace('/[^0-9.]/', '', $request->amount) : null,
+    'amount'                => (float) $request->amount,
 ]);
 
         // ── LOGO RESOLUTION ──────────────────────────────────────────────────
